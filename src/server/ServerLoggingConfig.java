@@ -39,7 +39,7 @@ final class ServerLoggingConfig {
 				rootLogger.removeHandler(handler);
 			}
 
-			// ログのフォーマット
+			// ログのフォーマット（日時、クラス名、メソッド名、ログレベル、メッセージの順に整形）
 			Formatter formatter = new SimpleFormatter();
 
 			// ログの出力先
