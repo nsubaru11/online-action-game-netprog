@@ -14,8 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+/**
+ * ログの設定を行うクラスです。
+ */
 final class ServerLoggingConfig {
-	private static volatile boolean initialized;
+	private static boolean initialized;
 
 	private ServerLoggingConfig() {
 	}
