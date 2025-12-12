@@ -54,7 +54,9 @@ public final class GameServer {
 
 				ClientHandler handler = new ClientHandler(clientSocket);
 				handler.start();
+				handler.setDisconnectListener(() -> disconnectHandler(handler));
 
+				addWaitingHandler(handler);
 			} catch (IOException e) {
 				logger.log(java.util.logging.Level.SEVERE, "クライアント接続処理で例外", e);
 				isRunning = false;
@@ -62,39 +64,39 @@ public final class GameServer {
 		}
 	}
 
-	public synchronized void addWaitingPlayer(ClientHandler player) {
-		waitingPlayers.add(player);
-		logger.info(() -> "プレイヤーが待ち行列に追加されました: " + player.getPlayerName());
+	public synchronized void addWaitingHandler(ClientHandler handler) {
+		waitingPlayers.add(handler);
+		logger.info(() -> "プレイヤーが待ち行列に追加されました: " + handler.getConnectionId());
 		matchPlayers();
 	}
 
 	private synchronized void matchPlayers() {
 		Iterator<ClientHandler> iterator = waitingPlayers.iterator();
 		while (iterator.hasNext()) {
-			ClientHandler player = iterator.next();
+			ClientHandler handler = iterator.next();
 			boolean assigned = false;
 			for (GameRoom room : gameRooms) {
-				if (room.addPlayer(player)) {
+				if (room.join(handler)) {
 					assigned = true;
-					logger.info(() -> "プレイヤーがルーム " + room.getRoomId() + " に追加されました: " + player.getPlayerName());
+					logger.info(() -> "プレイヤーがルーム " + room.getRoomId() + " に追加されました: " + handler.getConnectionId());
 					logger.info(room::toString);
 					break;
 				}
 			}
 			if (!assigned) {
 				GameRoom room = new GameRoom();
-				room.addPlayer(player);
+				room.join(handler);
 				gameRooms.add(room);
-				logger.info(() -> "プレイヤーがルーム " + room.getRoomId() + " に追加されました: " + player.getPlayerName());
+				logger.info(() -> "プレイヤーがルーム " + room.getRoomId() + " に追加されました: " + handler.getConnectionId());
 				logger.info(room::toString);
 			}
 			iterator.remove();
 		}
 	}
 
-	public synchronized void disconnectPlayer(ClientHandler player) {
-		if (player == null || !isRunning) return;
-		logger.info(() -> "プレイヤーが切断されました: " + player.getPlayerName());
-		waitingPlayers.remove(player);
+	private synchronized void disconnectHandler(ClientHandler handler) {
+		if (handler == null || !isRunning) return;
+		logger.info(() -> "プレイヤーが切断されました: " + handler.getConnectionId());
+		waitingPlayers.remove(handler);
 	}
 }

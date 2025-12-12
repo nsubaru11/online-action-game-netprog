@@ -90,4 +90,8 @@ class ClientHandler extends Thread implements Closeable {
 			logger.log(java.util.logging.Level.WARNING, "プレイヤーソケットクローズに失敗", e);
 		}
 	}
+
+	public int getConnectionId() {
+		return connectionId;
+	}
 }
