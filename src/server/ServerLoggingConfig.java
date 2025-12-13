@@ -57,9 +57,12 @@ final class ServerLoggingConfig {
 			fileHandler.setFormatter(formatter);
 
 			// ログの設定（ファイル出力とコンソール出力どちらも行う）
-			rootLogger.setLevel(Level.FINE);
+			rootLogger.setLevel(Level.INFO);
 			rootLogger.addHandler(consoleHandler);
 			rootLogger.addHandler(fileHandler);
+
+			Logger serverLogger = Logger.getLogger("server");
+			serverLogger.setLevel(Level.FINE);
 
 			// ログのシャットダウン時の処理
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {

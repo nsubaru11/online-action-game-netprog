@@ -1,5 +1,5 @@
 package model;
 
-public class Fighter implements GameCharacter {
+public class Fighter extends GameCharacter {
 
 }

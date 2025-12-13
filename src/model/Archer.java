@@ -1,5 +1,5 @@
 package model;
 
-public class Archer implements GameCharacter {
+public class Archer extends GameCharacter {
 
 }

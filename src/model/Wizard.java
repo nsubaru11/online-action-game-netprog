@@ -1,5 +1,5 @@
 package model;
 
-public class Wizard implements GameCharacter {
+public class Wizard extends GameCharacter {
 
 }
