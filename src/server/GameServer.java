@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * サーバー
+ * サーバーを起動するためのクラスです。
  */
 public final class GameServer implements Runnable, Closeable {
 	// -------------------- クラス定数 --------------------
