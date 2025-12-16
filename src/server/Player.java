@@ -20,8 +20,15 @@ public class Player {
 		return name;
 	}
 
+	public void setPlayerName(String name) {
+		this.name = name;
+	}
 
-	public void setReady(boolean ready) {
-		this.isReady = ready;
+	public void setReady() {
+		this.isReady = true;
+	}
+
+	public void setUnReady() {
+		this.isReady = false;
 	}
 }

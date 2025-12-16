@@ -47,7 +47,7 @@ class ClientHandler extends Thread implements Closeable {
 	}
 
 	public void sendMessage(final String message) {
-		logger.fine(() -> "[Conn-" + connectionId + "] 送信: " + message);
+		logger.fine(() -> "プレイヤー(ID: " + connectionId + ")に送信: " + message);
 		out.println(message);
 		out.flush();
 	}
@@ -59,15 +59,15 @@ class ClientHandler extends Thread implements Closeable {
 				String line = in.readLine();
 				if (line == null) break;
 				if (messageListener != null) {
-					logger.fine(() -> "[Conn-" + connectionId + "] 受信: " + line);
+					logger.fine(() -> "プレイヤー(ID: " + connectionId + ")から受信: " + line);
 					messageListener.accept(line);
 				}
 			}
 		} catch (final SocketTimeoutException e) {
-			logger.warning("[Conn-" + connectionId + "] タイムアウトにより切断");
+			logger.log(Level.WARNING, "プレイヤー(ID: " + connectionId + ")タイムアウトにより切断", e);
 		} catch (final IOException e) {
 			// 意図的に閉じた(isConnected==false)場合はエラーログを出さない
-			if (isConnected) logger.log(Level.WARNING, "[Conn-" + connectionId + "] 接続エラー", e);
+			if (isConnected) logger.log(Level.WARNING, "プレイヤー(ID: " + connectionId + ")接続エラー", e);
 		} finally {
 			if (isConnected && disconnectListener != null) {
 				try {
@@ -85,9 +85,9 @@ class ClientHandler extends Thread implements Closeable {
 		isConnected = false;
 		try {
 			socket.close();
-			logger.fine(() -> "[Conn-" + connectionId + "] ソケットをクローズしました");
+			logger.fine(() -> "プレイヤー(ID: " + connectionId + ")ソケットをクローズしました");
 		} catch (IOException e) {
-			logger.log(java.util.logging.Level.WARNING, "プレイヤーソケットクローズに失敗", e);
+			logger.log(Level.WARNING, "プレイヤーソケットクローズに失敗", e);
 		}
 	}
 

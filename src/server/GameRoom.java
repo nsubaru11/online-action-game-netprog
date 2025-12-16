@@ -40,9 +40,7 @@ class GameRoom extends Thread implements Closeable {
 		while (!isClosed) {
 			while (!commandQueue.isEmpty()) {
 				Command cmd = commandQueue.poll();
-				ClientHandler sender = cmd.getSender();
-				String msg = cmd.getMessage();
-				handleCommand(sender, msg);
+				handleCommand(cmd);
 			}
 			broadcastState();
 			try {
@@ -101,8 +99,38 @@ class GameRoom extends Thread implements Closeable {
 		this.disconnectListener = listener;
 	}
 
-	private synchronized void handleCommand(ClientHandler handler, String message) {
+	private synchronized void handleCommand(Command command) {
 		// TODO: コマンド処理
+		ClientHandler sender = command.getSender();
+		Player player = playerMap.get(sender);
+		if (player == null) return;
+		switch (command.getCommandType()) {
+			case CONNECT:
+				player.setPlayerName(command.getBody());
+				logger.fine(() -> "プレイヤー(ID: " + sender.getConnectionId() + ")の名前を" + player.getPlayerName() + "にしました。");
+				break;
+			case READY:
+				player.setReady();
+				logger.fine(() -> "プレイヤー(ID: " + sender.getConnectionId() + ")が準備完了です。");
+				startGame();
+				break;
+			case UNREADY:
+				player.setUnReady();
+				logger.fine(() -> "プレイヤー(ID: " + sender.getConnectionId() + ")が準備を解除しました。");
+				break;
+			case MOVE_LEFT:
+				break;
+			case MOVE_UP:
+				break;
+			case MOVE_RIGHT:
+				break;
+			case MOVE_DOWN:
+				break;
+			case RESIGN:
+				break;
+			default:
+				break;
+		}
 	}
 
 	private synchronized void startGame() {

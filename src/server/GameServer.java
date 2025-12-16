@@ -85,7 +85,7 @@ public final class GameServer implements Runnable, Closeable {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler handler = new ClientHandler(clientSocket);
 				handler.start();
-				logger.info("新しいクライアント(ID: " + handler.getConnectionId() + ")が接続しました。");
+				logger.info(() -> "新しいクライアント(ID: " + handler.getConnectionId() + ")が接続しました。");
 
 				addWaitingHandler(handler);
 			} catch (final IOException e) {
@@ -93,7 +93,7 @@ public final class GameServer implements Runnable, Closeable {
 					logger.log(Level.SEVERE, "クライアント接続処理で例外が発生しました。", e);
 					isRunning = false;
 				} else {
-					logger.info("サーバー停止に伴い接続待機を終了します。");
+					logger.info(() -> "サーバー停止に伴い接続待機を終了します。");
 				}
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE, "予期せぬ重大なエラーが発生しました。", e);
@@ -119,7 +119,7 @@ public final class GameServer implements Runnable, Closeable {
 		if (!isRunning) return;
 		waitingPlayers.add(handler);
 		handler.setDisconnectListener(() -> disconnectHandler(handler));
-		logger.info("プレイヤー(ID: " + handler.getConnectionId() + ")が待ち行列に追加されました。");
+		logger.info(() -> "プレイヤー(ID: " + handler.getConnectionId() + ")が待ち行列に追加されました。");
 		matchPlayers();
 	}
 
@@ -131,7 +131,7 @@ public final class GameServer implements Runnable, Closeable {
 			for (GameRoom room : gameRooms) {
 				if (room.join(handler)) {
 					assigned = true;
-					logger.info("プレイヤー(ID: " + handler.getConnectionId() + ")がルーム(ID: " + room.getRoomId() + ")に追加されました。");
+					logger.info(() -> "プレイヤー(ID: " + handler.getConnectionId() + ")がルーム(ID: " + room.getRoomId() + ")に追加されました。");
 					logger.config(room::toString);
 					break;
 				}
@@ -142,7 +142,7 @@ public final class GameServer implements Runnable, Closeable {
 				room.start();
 				room.setDisconnectListener(() -> removeGameRoom(room));
 				gameRooms.add(room);
-				logger.info("プレイヤー(ID: " + handler.getConnectionId() + ")がルーム(ID: " + room.getRoomId() + ")に追加されました。");
+				logger.info(() -> "プレイヤー(ID: " + handler.getConnectionId() + ")がルーム(ID: " + room.getRoomId() + ")に追加されました。");
 				logger.config(room::toString);
 			}
 			iterator.remove();
@@ -156,7 +156,7 @@ public final class GameServer implements Runnable, Closeable {
 
 	private synchronized void disconnectHandler(final ClientHandler handler) {
 		if (!isRunning || handler == null) return;
-		logger.info("プレイヤー(ID: " + handler.getConnectionId() + ")が切断されました。");
+		logger.info(() -> "プレイヤー(ID: " + handler.getConnectionId() + ")が切断されました。");
 		waitingPlayers.remove(handler);
 	}
 }
