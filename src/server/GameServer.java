@@ -1,5 +1,7 @@
 package server;
 
+import model.LoggingConfig;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -47,7 +49,7 @@ public final class GameServer implements Runnable, Closeable {
 
 	// -------------------- エントリーポイント --------------------
 	public static void main(final String[] args) {
-		ServerLoggingConfig.initialize();
+		LoggingConfig.initialize("server");
 
 		// ポート番号の設定
 		int port = DEFAULT_PORT;

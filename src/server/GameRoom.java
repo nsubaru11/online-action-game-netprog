@@ -1,5 +1,7 @@
 package server;
 
+import model.Protocol;
+
 import java.io.Closeable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,6 +16,8 @@ class GameRoom extends Thread implements Closeable {
 	private static final Logger logger = Logger.getLogger(GameRoom.class.getName());
 	private static final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
 	private static final int MAX_PLAYERS = 4;
+	private static final int FPS = 60;
+	private static final long FRAME_TIME = 1000_000_000L / FPS;
 
 	// -------------------- インスタンス定数 --------------------
 	private final int roomId;
@@ -37,23 +41,44 @@ class GameRoom extends Thread implements Closeable {
 
 	@Override
 	public void run() {
+		long targetTime = System.nanoTime();
 		while (!isClosed) {
+			targetTime += FRAME_TIME;
 			while (!commandQueue.isEmpty()) {
 				Command cmd = commandQueue.poll();
 				handleCommand(cmd);
 			}
 			broadcastState();
-			try {
-				sleep(16);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+			long waitNs = targetTime - System.nanoTime();
+			if (waitNs > 0) {
+				long waitMs = waitNs / 1_000_000;
+				int waitNsRest = (int) (waitNs % 1_000_000);
+				try {
+					// noinspection BusyWait
+					Thread.sleep(waitMs, waitNsRest);
+				} catch (InterruptedException e) {
+					logger.warning("GameRoom interrupted: " + roomId);
+					close();
+					break;
+				}
+			} else {
+				logger.fine("処理落ち発生: " + waitNs + "ns");
+				targetTime -= waitNs;
 			}
 		}
 	}
 
-	public synchronized void close() {
-		isClosed = true;
-		playerMap.keySet().forEach(ClientHandler::close);
+	public void close() {
+		synchronized (this) {
+			if (isClosed) return;
+			isClosed = true;
+			logger.info("ルーム(ID: " + roomId + ")を閉鎖します。全プレイヤーに通知中...");
+			playerMap.keySet().forEach(handler -> {
+				handler.sendMessage(Protocol.gameRoomClosed());
+				handler.close();
+			});
+			playerMap.clear();
+		}
 		if (disconnectListener != null) disconnectListener.run();
 	}
 
@@ -80,12 +105,8 @@ class GameRoom extends Thread implements Closeable {
 		return roomId;
 	}
 
-	public synchronized boolean isClosed() {
-		return isClosed;
-	}
-
 	public synchronized boolean join(final ClientHandler handler) {
-		if (playerMap.size() >= MAX_PLAYERS) return false;
+		if (isClosed || isStarted || playerMap.size() >= MAX_PLAYERS) return false;
 		handler.setMessageListener(msg -> this.commandQueue.add(new Command(handler, msg)));
 		handler.setDisconnectListener(() -> handleDisconnect(handler));
 		Player newPlayer = new Player("NoName");
@@ -167,20 +188,22 @@ class GameRoom extends Thread implements Closeable {
 		}
 	}
 
-	private synchronized void handleDisconnect(ClientHandler handler) {
+	private void handleDisconnect(ClientHandler handler) {
 		// TODO: プレイヤーが切断した場合の処理
 		// 接続が切れたプレイヤーはゲームルームからも追い出す。
-		logger.info("ルーム(ID: " + roomId + ") でプレイヤー(ID: " + handler.getConnectionId() + ")切断しました。");
-		playerMap.remove(handler);
-		handler.close();
-		if (isStarted) {
-			alivePlayers--;
-			if (alivePlayers == 1) {
-				endGame();
-				logger.info("ルーム(ID: " + roomId + ")で生存しているプレイヤーの人数が1人になったためゲームを終了します。");
+		synchronized (this) {
+			logger.info("ルーム(ID: " + roomId + ") でプレイヤー(ID: " + handler.getConnectionId() + ")切断しました。");
+			playerMap.remove(handler);
+			handler.close();
+			if (isStarted) {
+				alivePlayers--;
+				if (alivePlayers == 1) {
+					endGame();
+					logger.info("ルーム(ID: " + roomId + ")で生存しているプレイヤーの人数が1人になったためゲームを終了します。");
+				}
 			}
 		}
-		if (playerMap.isEmpty()) isClosed = true;
+		if (playerMap.isEmpty()) close();
 	}
 
 	private synchronized void broadcastState() {

@@ -24,11 +24,13 @@ class ClientHandler extends Thread implements Closeable {
 	private volatile Consumer<String> messageListener;
 	private volatile Runnable disconnectListener;
 	private volatile boolean isConnected;
+	private volatile boolean isClosed;
 
 	public ClientHandler(final Socket socket) {
 		this.connectionId = ID_GENERATOR.incrementAndGet();
 		this.socket = socket;
 		this.isConnected = true;
+		this.isClosed = false;
 		try {
 			socket.setSoTimeout(10000);
 			out = new PrintWriter(socket.getOutputStream(), true);
@@ -81,7 +83,8 @@ class ClientHandler extends Thread implements Closeable {
 	}
 
 	public void close() {
-		if (!isConnected) return;
+		if (!isConnected || isClosed) return;
+		isClosed = true;
 		isConnected = false;
 		try {
 			socket.close();

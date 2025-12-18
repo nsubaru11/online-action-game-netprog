@@ -1,4 +1,4 @@
-package server;
+package model;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,17 +17,17 @@ import java.util.logging.SimpleFormatter;
 /**
  * ログの設定を行うクラスです。
  */
-final class ServerLoggingConfig {
+public final class LoggingConfig {
 	private static boolean initialized;
 
-	private ServerLoggingConfig() {
+	private LoggingConfig() {
 	}
 
 	/**
 	 * ログの設定を行います。
 	 * コンソールとファイルの両方に出力を行います。
 	 */
-	static synchronized void initialize() {
+	public static synchronized void initialize(String packageName) {
 		if (initialized) return;
 
 		try {
@@ -35,7 +35,7 @@ final class ServerLoggingConfig {
 			Path logDir = Paths.get("logs");
 			Files.createDirectories(logDir);
 			String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-			Path logFile = logDir.resolve("server-" + timestamp + ".log");
+			Path logFile = logDir.resolve(packageName + "-" + timestamp + ".log");
 
 			// ログに関するすべての設定の初期化
 			Logger rootLogger = Logger.getLogger("");
@@ -61,9 +61,9 @@ final class ServerLoggingConfig {
 			rootLogger.addHandler(consoleHandler);
 			rootLogger.addHandler(fileHandler);
 
-			// `server` パッケージ内はより詳細なログを表示
-			Logger serverLogger = Logger.getLogger("server");
-			serverLogger.setLevel(Level.FINE);
+			// 指定したパッケージ内はより詳細なログを表示
+			Logger packageLogger = Logger.getLogger(packageName);
+			packageLogger.setLevel(Level.FINE);
 
 			// ログのシャットダウン時の処理
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {

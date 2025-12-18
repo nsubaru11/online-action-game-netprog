@@ -14,6 +14,8 @@ public enum CommandType {
 	JOIN_ROOM(7),
 	JOIN_OPPONENT(8),
 	RESULT(9),
+	GAME_ROOM_CLOSED(10),
+	SERVER_CLOSED(11),
 
 	// -------------------- クライアント -> サーバー --------------------
 	CONNECT(50),
@@ -24,9 +26,9 @@ public enum CommandType {
 	MOVE_RIGHT(55),
 	MOVE_DOWN(56),
 	RESIGN(57),
+	DISCONNECT(58),
 
 	// -------------------- その他 --------------------
-	DISCONNECT(253),
 	ERROR(254),
 	UNKNOWN(255);
 

@@ -45,6 +45,14 @@ public final class Protocol {
 		return CommandType.RESULT.getId() + ":" + result;
 	}
 
+	public static String gameRoomClosed() {
+		return CommandType.GAME_ROOM_CLOSED.getId() + "";
+	}
+
+	public static String serverClosed() {
+		return CommandType.SERVER_CLOSED.getId() + "";
+	}
+
 	// -------------------- クライアント -> サーバー --------------------
 
 	public static String connect(String playerName) {
@@ -71,4 +79,7 @@ public final class Protocol {
 		return CommandType.RESIGN.getId() + "";
 	}
 
+	public static String disconnect() {
+		return CommandType.DISCONNECT.getId() + "";
+	}
 }
